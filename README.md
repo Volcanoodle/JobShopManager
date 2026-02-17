@@ -8,7 +8,7 @@ This project contains the stub files for the above.
 The FAQ for this is located at https://canvas.hw.ac.uk/courses/31914/pages/coursework-specification?module_item_id=2328435 
 
 - **You MUST FORK this project to your own private namespace BEFORE cloning it to your local repo**
-- **The url of your fork must be https://gitlab-student.macs.hw.ac.uk/\<your-username>\/f29oc-2025-26-cw1**
+- **The url of your fork must be `https://gitlab-student.macs.hw.ac.uk/<your-username>/f29oc-2025-26-cw1`**
 - **You MUST NOT change the name of this project after you fork it**
 - **You MUST NOT add any files or branches to your project**
 - **Your submission must capable of compiling in java 21, with the original stub project code, without producing compile errors**
