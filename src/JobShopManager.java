@@ -21,6 +21,8 @@ public class JobShopManager implements JobShopInterface{
     private final Queue<Job> pendingJobs;
     private final HashMap<String, Integer> availableMachines;
     
+private final HashMap<String, Condition> machineTypeConditions;
+
     // Constructor
     public JobShopManager(String mode) {
         // FCFS = First Come First Served
@@ -29,16 +31,37 @@ public class JobShopManager implements JobShopInterface{
         this.lock = new ReentrantLock();
         this.pendingJobs = new LinkedList<>();
         this.availableMachines = new HashMap<>();
+        this.machineTypeConditions = new HashMap<>();
     }
 
     @Override
     public void specifyJobs(List<Job> jobs) {
-        //Your code here
+        lock.lock();
+        try {
+            pendingJobs.addAll(jobs);
+            
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public String thisMachineAvailable(String type, int ID) {
-        //Your code here
-        return "your return string here";
+lock.lock();
+        try {
+            availableMachines.put(type, availableMachines.getOrDefault(type, 0) + 1);
+            
+            if (!machineTypeConditions.containsKey(type)) {
+                machineTypeConditions.put(type, lock.newCondition());
+            }
+            Condition typeCondition = machineTypeConditions.get(type);
+
+            // (typeCondition.await())
+            
+            return "Pending_Job_Name"; 
+        } finally {
+            lock.unlock();
+        }
+    
     }   
 }
