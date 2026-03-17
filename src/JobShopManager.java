@@ -9,6 +9,10 @@ import java.util.List;
 
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
+import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class JobShopManager implements JobShopInterface{        
