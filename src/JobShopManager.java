@@ -44,9 +44,21 @@ public class JobShopManager implements JobShopInterface {
             lock.unlock();
         }
     }
+    
+    private boolean canSatisfyJob(Job job) {
+        HashMap<String, Integer> requiredMachines = new HashMap<>();
+        for (Operation op : job.operations) {
+            requiredMachines.put(op.machineType, requiredMachines.getOrDefault(op.machineType, 0) + 1);
+        }
+        for (String type : requiredMachines.keySet()) {
+            if (availableMachines.getOrDefault(type, 0) < requiredMachines.get(type)) {
+                return false; 
+            }
+        }
+        return true; 
+    }
 
     @Override
-
     public String thisMachineAvailable(String type, int ID) {
         lock.lock();
         try {
@@ -63,7 +75,7 @@ public class JobShopManager implements JobShopInterface {
                     typeCondition.await(); 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    // System.err.println("Thread interrupted: " + machineKey);
+                    // System.err.print
                 }
             }
             
