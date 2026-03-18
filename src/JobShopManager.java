@@ -46,8 +46,9 @@ private final HashMap<String, Condition> machineTypeConditions;
     }
 
     @Override
+
     public String thisMachineAvailable(String type, int ID) {
-lock.lock();
+        lock.lock();
         try {
             availableMachines.put(type, availableMachines.getOrDefault(type, 0) + 1);
             
@@ -55,13 +56,22 @@ lock.lock();
                 machineTypeConditions.put(type, lock.newCondition());
             }
             Condition typeCondition = machineTypeConditions.get(type);
+            boolean isAllocated = false; 
+            while (!isAllocated) {
+                try {
 
-            // (typeCondition.await())
+                    typeCondition.await(); 
+                    //todo
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Thread interrupted: " + type + "-" + ID);
+                }
+            }
             
             return "Pending_Job_Name"; 
         } finally {
             lock.unlock();
         }
-    
-    }   
+    } 
 }
