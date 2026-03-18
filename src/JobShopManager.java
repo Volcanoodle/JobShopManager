@@ -1,27 +1,24 @@
-import java.util.List;
-
 //Important: 
 // 1. The only concurrent or thread-safe classes that you 
 //    allowed to import for this class are the two shown below.
 // 2. This class must deal with all exceptions locally, i.e. 
 //    it's public methods must not 'throw' any exceptions to the caller
 //    otherwise our compilation of your code will fail.
-
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.Condition;
+import java.util.List;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
 
-
-public class JobShopManager implements JobShopInterface{        
-
+public class JobShopManager implements JobShopInterface {        
+    
     private final String mode;
     private final ReentrantLock lock;
     private final Queue<Job> pendingJobs;
     private final HashMap<String, Integer> availableMachines;
-    
-private final HashMap<String, Condition> machineTypeConditions;
+    private final HashMap<String, Condition> machineTypeConditions;
+    private final HashMap<String, String> machineAllocations;
 
     // Constructor
     public JobShopManager(String mode) {
@@ -32,6 +29,7 @@ private final HashMap<String, Condition> machineTypeConditions;
         this.pendingJobs = new LinkedList<>();
         this.availableMachines = new HashMap<>();
         this.machineTypeConditions = new HashMap<>();
+        this.machineAllocations = new HashMap<>(); 
     }
 
     @Override
@@ -39,7 +37,9 @@ private final HashMap<String, Condition> machineTypeConditions;
         lock.lock();
         try {
             pendingJobs.addAll(jobs);
-            
+        //todo:(FCFS or SJF)
+        } finally {
+            lock.unlock();
         } finally {
             lock.unlock();
         }
@@ -56,22 +56,22 @@ private final HashMap<String, Condition> machineTypeConditions;
                 machineTypeConditions.put(type, lock.newCondition());
             }
             Condition typeCondition = machineTypeConditions.get(type);
-            boolean isAllocated = false; 
-            while (!isAllocated) {
+            String machineKey = type + "-" + ID;
+
+            while (!machineAllocations.containsKey(machineKey)) {
                 try {
-
                     typeCondition.await(); 
-                    //todo
-
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    System.err.println("Thread interrupted: " + type + "-" + ID);
+                    // System.err.println("Thread interrupted: " + machineKey);
                 }
             }
             
-            return "Pending_Job_Name"; 
+            String allocatedJobName = machineAllocations.remove(machineKey);
+            return allocatedJobName; 
+
         } finally {
             lock.unlock();
         }
-    } 
+    }   
 }
