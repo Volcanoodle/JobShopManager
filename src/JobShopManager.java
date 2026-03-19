@@ -17,7 +17,7 @@ public class JobShopManager implements JobShopInterface {
     private final ReentrantLock lock;
     private final Queue<Job> pendingJobs;
     private final HashMap<String, Queue<Integer>> availableMachines;
-    private final HashMap<String, Condition> machineTypeConditions;
+    private final HashMap<String, Condition> machineConditions;
     private final HashMap<String, String> machineAllocations;
 
     // Constructor
@@ -28,7 +28,7 @@ public class JobShopManager implements JobShopInterface {
         this.lock = new ReentrantLock();
         this.pendingJobs = new LinkedList<>();
         this.availableMachines = new HashMap<>();
-        this.machineTypeConditions = new HashMap<>();
+        this.machineConditions = new HashMap<>();
         this.machineAllocations = new HashMap<>(); 
     }
 
@@ -68,23 +68,24 @@ public class JobShopManager implements JobShopInterface {
                 availableMachines.put(type, new LinkedList<>());
             }
             availableMachines.get(type).add(ID);
-            Condition typeCondition = machineTypeConditions.get(type);
             String machineKey = type + "-" + ID;
+            if (!machineConditions.containsKey(machineKey)) {
+                machineConditions.put(machineKey, lock.newCondition());
+            }
+            Condition myCondition = machineConditions.get(machineKey);
 
             while (!machineAllocations.containsKey(machineKey)) {
                 try {
-                    typeCondition.await(); 
+                    myCondition.await(); 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    // System.err.print
                 }
             }
             
             String allocatedJobName = machineAllocations.remove(machineKey);
             return allocatedJobName; 
-
         } finally {
             lock.unlock();
         }
-    }   
+    } 
 }
