@@ -16,7 +16,7 @@ public class JobShopManager implements JobShopInterface {
     private final String mode;
     private final ReentrantLock lock;
     private final Queue<Job> pendingJobs;
-    private final HashMap<String, Integer> availableMachines;
+    private final HashMap<String, Queue<Integer>> availableMachines;
     private final HashMap<String, Condition> machineTypeConditions;
     private final HashMap<String, String> machineAllocations;
 
@@ -44,14 +44,16 @@ public class JobShopManager implements JobShopInterface {
             lock.unlock();
         }
     }
-    
+
     private boolean canSatisfyJob(Job job) {
         HashMap<String, Integer> requiredMachines = new HashMap<>();
         for (Operation op : job.operations) {
             requiredMachines.put(op.machineType, requiredMachines.getOrDefault(op.machineType, 0) + 1);
         }
         for (String type : requiredMachines.keySet()) {
-            if (availableMachines.getOrDefault(type, 0) < requiredMachines.get(type)) {
+            Queue<Integer> freeMachines = availableMachines.get(type);
+            int availableCount = (freeMachines == null) ? 0 : freeMachines.size();
+            if (availableCount < requiredMachines.get(type)) {
                 return false; 
             }
         }
@@ -62,11 +64,10 @@ public class JobShopManager implements JobShopInterface {
     public String thisMachineAvailable(String type, int ID) {
         lock.lock();
         try {
-            availableMachines.put(type, availableMachines.getOrDefault(type, 0) + 1);
-            
-            if (!machineTypeConditions.containsKey(type)) {
-                machineTypeConditions.put(type, lock.newCondition());
+            if (!availableMachines.containsKey(type)) {
+                availableMachines.put(type, new LinkedList<>());
             }
+            availableMachines.get(type).add(ID);
             Condition typeCondition = machineTypeConditions.get(type);
             String machineKey = type + "-" + ID;
 
