@@ -37,9 +37,7 @@ public class JobShopManager implements JobShopInterface {
         lock.lock();
         try {
             pendingJobs.addAll(jobs);
-        //todo:(FCFS or SJF)
-        } finally {
-            lock.unlock();
+            trySchedule();
         } finally {
             lock.unlock();
         }
@@ -98,7 +96,7 @@ public class JobShopManager implements JobShopInterface {
                 machineConditions.put(machineKey, lock.newCondition());
             }
             Condition myCondition = machineConditions.get(machineKey);
-
+            trySchedule();
             while (!machineAllocations.containsKey(machineKey)) {
                 try {
                     myCondition.await(); 
