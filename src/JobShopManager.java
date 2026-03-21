@@ -126,7 +126,6 @@ public class JobShopManager implements JobShopInterface {
             String machineKey = type + "-" + ID;
             if (!machineConditions.containsKey(machineKey)) {
                 machineConditions.put(machineKey, lock.newCondition());
-            }
             Condition myCondition = machineConditions.get(machineKey);
             trySchedule();
             while (!machineAllocations.containsKey(machineKey)) {
@@ -136,11 +135,11 @@ public class JobShopManager implements JobShopInterface {
                     Thread.currentThread().interrupt();
                 }
             }
-            
             String allocatedJobName = machineAllocations.remove(machineKey);
+            machineConditions.remove(machineKey);
             return allocatedJobName; 
         } finally {
             lock.unlock();
         }
-    } 
+    }
 }
