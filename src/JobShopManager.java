@@ -43,6 +43,16 @@ public class JobShopManager implements JobShopInterface {
         }
     }
 
+    private int calculateTotalProcessingTime(Job job) {
+        int totalTime = 0;
+        for (Operation op : job.operations) {
+            if (op != null && op.processingTime != null) {
+                totalTime += op.processingTime;
+            }
+        }
+        return totalTime;
+    }
+
     private boolean canSatisfyJob(Job job) {
         HashMap<String, Integer> requiredMachines = new HashMap<>();
         for (Operation op : job.operations) {
