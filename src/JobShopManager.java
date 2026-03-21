@@ -34,13 +34,14 @@ public class JobShopManager implements JobShopInterface {
 
     @Override
     public void specifyJobs(List<Job> jobs) {
+        if (jobs == null || jobs.isEmpty()) {
+            return;
+        }
         lock.lock();
         try {
-            if (jobs != null) { 
-                for (Job job : jobs) {
-                    if (job != null) {
-                        addJobToQueue(job);
-                    }
+            for (Job job : jobs) {
+                if (job != null && job.operations != null && !job.operations.isEmpty()) {
+                    addJobToQueue(job);
                 }
             }
             trySchedule();
