@@ -73,6 +73,18 @@ public class JobShopManager implements JobShopInterface {
         }
     }
 
+    private void trySchedule() {
+        while (!pendingJobs.isEmpty()) {
+            Job nextJob = pendingJobs.peek(); 
+            if (canSatisfyJob(nextJob)) {
+                pendingJobs.poll();
+                allocateJob(nextJob);
+            } else {
+                break;
+            }
+        }
+    }
+
     @Override
     public String thisMachineAvailable(String type, int ID) {
         lock.lock();
