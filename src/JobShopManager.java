@@ -53,6 +53,22 @@ public class JobShopManager implements JobShopInterface {
         return totalTime;
     }
 
+    private void addJobToQueue(Job newJob) {
+        if ("SJF".equals(mode)) {
+            int newJobTime = calculateTotalProcessingTime(newJob);
+            int insertIndex = 0;
+            for (Job existingJob : pendingJobs) {
+                if (calculateTotalProcessingTime(existingJob) > newJobTime) {
+                    break;
+                }
+                insertIndex++;
+            }
+            pendingJobs.add(insertIndex, newJob);
+        } else {
+            pendingJobs.add(newJob);
+        }
+    }
+
     private boolean canSatisfyJob(Job job) {
         HashMap<String, Integer> requiredMachines = new HashMap<>();
         for (Operation op : job.operations) {
