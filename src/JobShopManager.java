@@ -60,6 +60,19 @@ public class JobShopManager implements JobShopInterface {
         return true; 
     }
 
+    private void allocateJob(Job job) {
+        for (Operation op : job.operations) {
+            String type = op.machineType;
+            Queue<Integer> freeMachines = availableMachines.get(type);
+            int machineID = freeMachines.poll(); 
+            String machineKey = type + "-" + machineID;
+            machineAllocations.put(machineKey, job.jobName);
+            Condition myCondition = machineConditions.get(machineKey);
+            if (myCondition != null) {
+                myCondition.signal();
+        }
+    }
+
     @Override
     public String thisMachineAvailable(String type, int ID) {
         lock.lock();
