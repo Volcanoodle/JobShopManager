@@ -15,7 +15,7 @@ public class JobShopManager implements JobShopInterface {
     
     private final String mode;
     private final ReentrantLock lock;
-    private final Queue<Job> pendingJobs;
+    private final LinkedList<Job> pendingJobs;
     private final HashMap<String, Queue<Integer>> availableMachines;
     private final HashMap<String, Condition> machineConditions;
     private final HashMap<String, String> machineAllocations;
