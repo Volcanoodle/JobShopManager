@@ -36,7 +36,13 @@ public class JobShopManager implements JobShopInterface {
     public void specifyJobs(List<Job> jobs) {
         lock.lock();
         try {
-            pendingJobs.addAll(jobs);
+            if (jobs != null) { 
+                for (Job job : jobs) {
+                    if (job != null) {
+                        addJobToQueue(job);
+                    }
+                }
+            }
             trySchedule();
         } finally {
             lock.unlock();
