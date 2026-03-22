@@ -79,4 +79,32 @@ public class Tests {
                 System.out.println("--- UR2 测试结束 ---\n");
         }
 
+        public void testUR3() {
+                System.out.println("\n--- 运行 UR3 测试 ---");
+                JobShopManager jobShopManager = new JobShopManager("FCFS");
+
+                Job job1 = new Job("Job1",
+                                List.of(new Operation("FDM", 5),
+                                        new Operation("FDM", 3),
+                                        new Operation("FDM", 3),
+                                        new Operation("SLA", 3)));
+   
+                Job job2 = new Job("Job2",
+                                List.of(new Operation("FDM", 5),
+                                        new Operation("FDM", 3)));
+
+                System.out.println("先提交 2 个作业请求...");
+                jobShopManager.specifyJobs(List.of(job1));
+                jobShopManager.specifyJobs(List.of(job2)); 
+                try {Thread.sleep(200);} catch (InterruptedException e) {e.printStackTrace();}
+                System.out.println("随后启动混合类型的机器 (6台 FDM, 2台 SLA)...");
+                for (int i=1; i<=6; i++) new MachineThread(jobShopManager, "FDM", i).start();
+                for (int i=1; i<=2; i++) new MachineThread(jobShopManager, "SLA", i).start();
+                try {Thread.sleep(200);} catch (InterruptedException e) {e.printStackTrace();}  
+
+                System.out.println("检查结果：");
+                System.out.println("预期行为：结果应与 UR2 完全一致，共有 5 台 FDM 和 1 台 SLA 打印 'proceeding'，其余阻塞。");
+                System.out.println("--- UR3 测试结束 ---\n");
+        }
+
 }
