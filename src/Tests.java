@@ -143,4 +143,29 @@ public class Tests {
                 System.out.println("--- UR4 测试结束 ---\n");
         }
 
+        public void testUR5() {
+                System.out.println("\n--- 运行 UR5 测试 ---");
+                JobShopManager jobShopManager = new JobShopManager("FCFS");
+
+                System.out.println("启动 2 台 FDM 和 1 台 SLA...");
+                new MachineThread(jobShopManager, "FDM", 1).start();
+                new MachineThread(jobShopManager, "FDM", 2).start();
+                new MachineThread(jobShopManager, "SLA", 1).start();
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                String uniqueJobName = "Special_UR5_Job";
+                Job job1 = new Job(uniqueJobName, List.of(
+                        new Operation("FDM", 1), new Operation("SLA", 1)
+                ));
+                
+                System.out.println("提交作业: " + uniqueJobName + " (需 1 台 FDM, 1 台 SLA)...");
+                jobShopManager.specifyJobs(List.of(job1));
+                try {Thread.sleep(200);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("检查结果：");
+                System.out.println("预期行为：控制台上必须有 1 台 FDM 和 1 台 SLA 打印 'proceeding for job: Special_UR5_Job'。");
+                System.out.println("          剩余的 1 台 FDM 应该继续保持阻塞（不打印任何内容）。");
+                System.out.println("--- UR5 测试结束 ---\n");
+        }
+
 }
