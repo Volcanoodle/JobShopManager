@@ -18,8 +18,8 @@ public class Tests {
 
                 @Override
                 public void run() {
-                        jobShopManager.thisMachineAvailable(machineType, machineID);
-                        System.out.println(machineType + " " + machineID + " machine proceeding");
+                        String assignedJob = jobShopManager.thisMachineAvailable(machineType, machineID);
+                        System.out.println(machineType + " " + machineID + " machine proceeding for job: " + assignedJob);
                 }
         }
 
