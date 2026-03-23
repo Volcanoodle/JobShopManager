@@ -168,4 +168,33 @@ public class Tests {
                 System.out.println("--- UR5 测试结束 ---\n");
         }
 
+        public void testUR6() {
+                System.out.println("\n--- 运行 UR6 测试 ---");
+                JobShopManager jobShopManager = new JobShopManager("SJF");
+
+                Job jobLong = new Job("Job_Long", List.of(
+                        new Operation("FDM", 50), new Operation("FDM", 50)
+                ));
+                
+                Job jobShort = new Job("Job_Short", List.of(
+                        new Operation("FDM", 5), new Operation("FDM", 5)
+                ));
+
+                System.out.println("先提交 Job_Long (总耗时100)，再提交 Job_Short (总耗时10)...");
+                jobShopManager.specifyJobs(List.of(jobLong));
+                jobShopManager.specifyJobs(List.of(jobShort));
+                
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("启动 2 台 FDM 机器 (资源有限，发生竞争)...");
+                new MachineThread(jobShopManager, "FDM", 1).start();
+                new MachineThread(jobShopManager, "FDM", 2).start();
+                try {Thread.sleep(200);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("检查结果：");
+                System.out.println("预期行为：因为启用了 SJF 模式，虽然 Job_Long 先排队，但机器应该优先分配给耗时短的作业。");
+                System.out.println("          控制台必须打印 2 台机器 'proceeding for job: Job_Short'。");
+                System.out.println("--- UR6 测试结束 ---\n");
+        }
+
 }
