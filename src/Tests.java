@@ -49,7 +49,6 @@ public class Tests {
         }
 
 
-        // UR2 example test
         public void testUR2() {
                 System.out.println("\n--- 运行 UR2 测试 ---");
                 JobShopManager jobShopManager = new JobShopManager("FCFS");
@@ -105,6 +104,43 @@ public class Tests {
                 System.out.println("检查结果：");
                 System.out.println("预期行为：结果应与 UR2 完全一致，共有 5 台 FDM 和 1 台 SLA 打印 'proceeding'，其余阻塞。");
                 System.out.println("--- UR3 测试结束 ---\n");
+        }
+
+        public void testUR4() {
+                System.out.println("\n--- 运行 UR4 测试 ---");
+                JobShopManager jobShopManager = new JobShopManager("FCFS");
+
+                System.out.println("第一阶段：启动 2 台 FDM...");
+                new MachineThread(jobShopManager, "FDM", 1).start();
+                new MachineThread(jobShopManager, "FDM", 2).start();
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                Job job1 = new Job("Job1", List.of(
+                        new Operation("FDM", 1), new Operation("FDM", 1), new Operation("FDM", 1)
+                ));
+                System.out.println("第二阶段：提交 Job1 (需 3 台 FDM)... (目前只有 2 台，应该等待)");
+                jobShopManager.specifyJobs(List.of(job1));
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("第三阶段：再启动 2 台 FDM... (此时 Job1 应该满足并唤醒 3 台，剩下 1 台闲置等待)");
+                new MachineThread(jobShopManager, "FDM", 3).start();
+                new MachineThread(jobShopManager, "FDM", 4).start();
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                Job job2 = new Job("Job2", List.of(
+                        new Operation("FDM", 1), new Operation("FDM", 1)
+                ));
+                System.out.println("第四阶段：提交 Job2 (需 2 台 FDM)... (目前只有 1 台闲置，应该等待)");
+                jobShopManager.specifyJobs(List.of(job2));
+                try {Thread.sleep(100);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("第五阶段：最后启动 1 台 FDM... (此时 Job2 应该满足并唤醒剩余机器)");
+                new MachineThread(jobShopManager, "FDM", 5).start();
+                try {Thread.sleep(200);} catch (InterruptedException e) {e.printStackTrace();}
+
+                System.out.println("检查结果：");
+                System.out.println("预期行为：5 台 FDM 机器全部打印 'proceeding'，且没有死锁。");
+                System.out.println("--- UR4 测试结束 ---\n");
         }
 
 }
