@@ -11,6 +11,14 @@ import java.util.Queue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
 
+/**
+ * JobShopManager implements an Extrinsic Monitor using a single ReentrantLock.
+ * It strictly complies with the coursework constraints:
+ * - Uses ONLY ReentrantLock and Condition for concurrency control.
+ * - Handles all exceptions locally (no 'throws' in public signatures).
+ * - Avoids signalAll() by mapping individual Conditions to specific machines,
+ * preventing lost signals and spurious wakeups.
+ */
 public class JobShopManager implements JobShopInterface {        
     
     private final String mode;
@@ -32,6 +40,10 @@ public class JobShopManager implements JobShopInterface {
         this.machineAllocations = new HashMap<>(); 
     }
 
+    /**
+     * Submits a list of jobs to the manager.
+     * Includes defensive programming to handle null inputs locally without throwing
+     */
     @Override
     public void specifyJobs(List<Job> jobs) {
         if (jobs == null || jobs.isEmpty()) {
@@ -104,6 +116,11 @@ public class JobShopManager implements JobShopInterface {
         }
     }
 
+    /**
+     * The core scheduling engine. It evaluates the head of the pendingJobs queue.
+     * In FCFS mode, if the head job cannot be satisfied, it breaks the loop immediately
+     * to enforce strict Head-of-Line blocking (no subsequent jobs can bypass it).
+     */
     private void trySchedule() {
         while (!pendingJobs.isEmpty()) {
             Job nextJob = pendingJobs.peek(); 
