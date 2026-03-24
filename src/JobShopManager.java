@@ -113,6 +113,7 @@ public class JobShopManager implements JobShopInterface {
             Condition myCondition = machineConditions.get(machineKey);
             if (myCondition != null) {
                 myCondition.signal();
+            }
         }
     }
 
@@ -144,6 +145,7 @@ public class JobShopManager implements JobShopInterface {
             String machineKey = type + "-" + ID;
             if (!machineConditions.containsKey(machineKey)) {
                 machineConditions.put(machineKey, lock.newCondition());
+            }
             Condition myCondition = machineConditions.get(machineKey);
             trySchedule();
             while (!machineAllocations.containsKey(machineKey)) {
