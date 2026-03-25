@@ -14,8 +14,8 @@ import java.util.concurrent.locks.Condition;
 /**
  * JobShopManager implements an Extrinsic Monitor using a single ReentrantLock.
  * It strictly complies with the coursework constraints:
- * - Uses ONLY ReentrantLock and Condition for concurrency control.
- * - Handles all exceptions locally (no 'throws' in public signatures).
+ * - Uses ONLY ReentrantLock and Condition for concurrency control .
+ * - Handles all exceptions locally (no 'throws' in public signatures) .
  * - Avoids signalAll() by mapping individual Conditions to specific machines,
  * preventing lost signals and spurious wakeups.
  */
@@ -42,7 +42,7 @@ public class JobShopManager implements JobShopInterface {
 
     /**
      * Submits a list of jobs to the manager.
-     * Includes defensive programming to handle null inputs locally without throwing
+     * Includes defensive programming to handle null inputs locally without throwing unchecked exceptions.
      */
     @Override
     public void specifyJobs(List<Job> jobs) {
@@ -64,9 +64,11 @@ public class JobShopManager implements JobShopInterface {
 
     private int calculateTotalProcessingTime(Job job) {
         int totalTime = 0;
-        for (Operation op : job.operations) {
-            if (op != null && op.processingTime != null) {
-                totalTime += op.processingTime;
+        if (job != null && job.operations != null) {
+            for (Operation op : job.operations) {
+                if (op != null && op.processingTime != null) {
+                    totalTime += op.processingTime;
+                }
             }
         }
         return totalTime;
@@ -89,9 +91,12 @@ public class JobShopManager implements JobShopInterface {
     }
 
     private boolean canSatisfyJob(Job job) {
+        if (job == null || job.operations == null) return false;
         HashMap<String, Integer> requiredMachines = new HashMap<>();
         for (Operation op : job.operations) {
-            requiredMachines.put(op.machineType, requiredMachines.getOrDefault(op.machineType, 0) + 1);
+            if (op != null && op.machineType != null) {
+                requiredMachines.put(op.machineType, requiredMachines.getOrDefault(op.machineType, 0) + 1);
+            }
         }
         for (String type : requiredMachines.keySet()) {
             Queue<Integer> freeMachines = availableMachines.get(type);
@@ -104,15 +109,20 @@ public class JobShopManager implements JobShopInterface {
     }
 
     private void allocateJob(Job job) {
+        if (job == null || job.operations == null) return;
         for (Operation op : job.operations) {
+            if (op == null || op.machineType == null) continue;
             String type = op.machineType;
             Queue<Integer> freeMachines = availableMachines.get(type);
-            int machineID = freeMachines.poll(); 
-            String machineKey = type + "-" + machineID;
-            machineAllocations.put(machineKey, job.jobName);
-            Condition myCondition = machineConditions.get(machineKey);
-            if (myCondition != null) {
-                myCondition.signal();
+            if (freeMachines != null && !freeMachines.isEmpty()) {
+                int machineID = freeMachines.poll(); 
+                String machineKey = type + "-" + machineID;
+                machineAllocations.put(machineKey, job.jobName);
+                
+                Condition myCondition = machineConditions.get(machineKey);
+                if (myCondition != null) {
+                    myCondition.signal();
+                }
             }
         }
     }
@@ -125,7 +135,7 @@ public class JobShopManager implements JobShopInterface {
     private void trySchedule() {
         while (!pendingJobs.isEmpty()) {
             Job nextJob = pendingJobs.peek(); 
-            if (canSatisfyJob(nextJob)) {
+            if (nextJob != null && canSatisfyJob(nextJob)) {
                 pendingJobs.poll();
                 allocateJob(nextJob);
             } else {
@@ -136,6 +146,9 @@ public class JobShopManager implements JobShopInterface {
 
     @Override
     public String thisMachineAvailable(String type, int ID) {
+        if (type == null) {
+            return ""; 
+        }
         lock.lock();
         try {
             if (!availableMachines.containsKey(type)) {
@@ -157,9 +170,9 @@ public class JobShopManager implements JobShopInterface {
             }
             String allocatedJobName = machineAllocations.remove(machineKey);
             machineConditions.remove(machineKey);
-            return allocatedJobName; 
+            return allocatedJobName != null ? allocatedJobName : ""; 
         } finally {
             lock.unlock();
         }
-    }
+    }   
 }
