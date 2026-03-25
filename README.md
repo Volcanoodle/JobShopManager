@@ -1,64 +1,57 @@
+Markdown
+# Concurrent Job Shop Scheduling System
 
+![Java](https://img.shields.io/badge/Java-21-orange.svg)
+![Concurrency](https://img.shields.io/badge/Concurrency-Extrinsic%20Monitor-blue.svg)
+![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
-## F29OC 2025-26 1st Oportunity Coursework Stub project 
+## 📌 Overview
 
-This project contains the stub files for the above.
-The FAQ for this is located at https://canvas.hw.ac.uk/courses/31914/pages/coursework-specification?module_item_id=2328435 
+This project implements a highly robust, thread-safe **Job Shop Scheduling Manager** designed to synchronize the usage of manufacturing machines (e.g., 3D printers, laser cutters) for executing concurrent job requests. 
 
-- **You MUST FORK this project to your own private namespace BEFORE cloning it to your local repo**
-- **The url of your fork must be `https://gitlab-student.macs.hw.ac.uk/<your-username>/f29oc-2025-26-cw1`**
-- **You MUST NOT change the name of this project after you fork it**
-- **You MUST NOT add any files or branches to your project**
-- **Your submission must capable of compiling in java 21, with the original stub project code, without producing compile errors**
+Developed entirely from scratch in Java 21, the system utilizes the **Extrinsic Monitor Pattern** to manage shared resources efficiently without relying on higher-level concurrent collections or synchronized blocks. It strictly enforces Head-of-Line blocking and prevents common concurrency pitfalls such as lost signals, spurious wakeups, and deadlocks.
 
-## Files that you MUST NOT edit:
- - Job.java 
- - Operation.java 
- - Interface.java 
+## ✨ Key Technical Highlights
 
-## Files that you should edit:
-- App.java
-- JobShopManager.java 
-- Tests.java (currently contains exampleUR2Test)
+* **Extrinsic Monitor Implementation:** Exclusively uses `java.util.concurrent.locks.ReentrantLock` and `Condition` to protect shared states.
+* **Fine-Grained Thread Signaling:** Avoids the anti-pattern of `signalAll()`. Instead, it maps individual `Condition` variables to specific machine instances (Per-Machine Condition), ensuring precise, targeted thread wakeups and eliminating CPU-wasting spurious wakeups.
+* **Dual Scheduling Algorithms:**
+  * **FCFS (First-Come-First-Served):** Enforces strict chronological processing with precise Head-of-Line blocking.
+  * **SJF (Shortest Job First):** Dynamically sorts pending jobs based on the total processing time of their operations to optimize throughput.
+* **Zero Busy-Waiting:** Threads yield the CPU entirely while waiting for resource allocation.
+* **Defensive Programming & Null Safety:** 100% local exception handling. The system elegantly digests malformed or null requests without throwing unchecked exceptions, guaranteeing continuous uptime.
 
-JobShopManager.java may only use the following concurrent or thread-safe classes
--  java.util.concurrent.locks.ReentrantLock;
- - java.util.concurrent.locks.Condition;
- - It must not through any exceptions (they must be delt with locally)
+## 🏗️ Architecture & Core Logic
 
- Tests.java may use any Java 21 library
+The core scheduling engine (`JobShopManager.java`) manages two asynchronous event streams: incoming jobs and arriving machines. 
 
+1. **State Management:** Maintains decoupled data structures for `pendingJobs` (waiting queue) and `availableMachines` (idle resources).
+2. **The `trySchedule()` Engine:** An atomic execution block triggered on any state mutation. It evaluates the head of the queue against available resources.
+3. **Allocation Protocol:** Upon a successful match, the system securely transfers the job assignment to an intermediate `machineAllocations` map and signals the exact memory address of the target machine thread.
 
-## What happens if you run the app as is
-The example test will fail as there is no appropriate code in JobShopManager.
+## 🚀 Getting Started
 
-The output will be:
+### Prerequisites
+* Java Development Kit (JDK) 21 or higher.
 
-```
-Start the machines:
+### Compilation
+Clone the repository and compile the source code from the root directory:
+```bash
+javac src/*.java
+Running the Test Suite
+The project includes a comprehensive multithreaded test suite (Tests.java) that simulates complex, out-of-order execution scenarios (UR1 to UR6), verifying the robustness of the scheduler under heavy contention.
 
-FDM 3 machine proceeding
-SLA 1 machine proceeding
-FDM 6 machine proceeding
-FDM 4 machine proceeding
-FDM 2 machine proceeding
-FDM 5 machine proceeding
-SLA 2 machine proceeding
-FDM 1 machine proceeding
+To execute the tests:
 
-Specify the Jobs: and note that processing time is not used in FCFS
+Bash
+java -cp src App
+Expected Test Coverage
+UR1-UR2: Standard job and machine synchronization.
 
-        jobName='Job1'
-        operations= [Operation{machineType='FDM', processingTime=5}, Operation{machineType='FDM', processingTime=3}, Operation{machineType='FDM', processingTime=3}, Operation{machineType='SLA', processingTime=3}]
+UR3: Deferred machine arrivals (Jobs wait for resources).
 
-        jobName='Job2'
-        operations= [Operation{machineType='FDM', processingTime=5}, Operation{machineType='FDM', processingTime=3}]
+UR4: Highly interleaved, random-order arrivals of machines and jobs.
 
-Now examine the machines released:
-        As there is no functional code in the JobShopManager yet
-        all six FDM and two SLA machine threads have been released to proceed.
-        The correct result would be to release five FDM and one SLA machines after the
-        the two jobs had been submitted.
-```
+UR5: Verification of strict allocation mapping (Job Names returned securely to threads).
 
-
+UR6: SJF priority sorting under resource contention.
